@@ -1,0 +1,47 @@
+service: aws-sdk
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: go1.x
+  stage: ${opt:stage}
+  environment:
+    S3Bucket: "samplebuckect-100222233"
+  # set iam role policy to allow s3 access
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:ListBucket"
+      Resource:
+        - "arn:aws:s3:::${self:provider.environment.S3Bucket}"
+    - Effect: "Allow"
+      Action:
+        - "s3:PutObject"
+        - "s3:GetObject"
+        - "s3:DeleteObject"
+      Resource:
+        - "arn:aws:s3:::${self:provider.environment.S3Bucket}/*"
+
+package:
+  patterns:
+    - "!*/**"
+    - "bin/**"
+
+functions:
+  - bucketFunc:
+      handler: bin/main
+      events:
+        - http:
+            method: GET
+            path: listobjects
+            cors: true
+
+        - http:
+            method: POST
+            path: createobject
+            cors: true
+
+        - http:
+            method: DELETE
+            path: deleteobject
+            cors: true
